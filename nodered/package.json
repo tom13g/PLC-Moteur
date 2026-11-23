@@ -1,0 +1,14 @@
+{
+  "name": "tp-simu-auto-ihm",
+  "version": "0.1.0",
+  "description": "IHM Node-RED du moteur asynchrone simule (Modbus TCP)",
+  "private": true,
+  "scripts": {
+    "start": "node-red --userDir . flows.json"
+  },
+  "dependencies": {
+    "@flowfuse/node-red-dashboard": "*",
+    "node-red": "*",
+    "node-red-contrib-modbus": "*"
+  }
+}

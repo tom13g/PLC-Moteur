@@ -1,0 +1,9 @@
+__pycache__/
+*.pyc
+
+# Node-RED : dépendances et fichiers d'exécution
+node_modules/
+nodered/.config.*.json
+nodered/.config.*.json.backup
+nodered/*.backup
+nodered/flows_cred.json

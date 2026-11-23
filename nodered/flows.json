@@ -1,0 +1,543 @@
+[
+    {
+        "id": "f10w0001",
+        "type": "tab",
+        "label": "IHM moteur",
+        "disabled": false,
+        "info": "IHM du moteur asynchrone simulé.\n\nLes adresses Modbus utilisées ici doivent rester identiques à celles de `src/tp_simu_auto/modbus_map.py` :\n\n- Coils 0 à 2 : marche/arrêt, arrêt d'urgence, mode manuel\n- Holding registers 0 à 2 : consigne manuelle, rampe de montée, rampe de descente\n- Input registers 0 et 1 : vitesse mesurée, consigne suivie\n- Esclave 1, port 502\n\nLes adresses de lecture sont dans les trois nœuds Modbus Read, celles d'écriture dans le nœud « Table d'écriture ».\n\nLa phase, l'accélération et les compteurs sont calculés dans le nœud « Calculs » : ils ne viennent pas de l'automate. L'arrêt d'urgence, le mode et les réglages sont en revanche gérés par l'automate lui-même."
+    },
+    {
+        "id": "mbc1ient",
+        "type": "modbus-client",
+        "name": "Automate simulé",
+        "clienttype": "tcp",
+        "bufferCommands": true,
+        "stateLogEnabled": false,
+        "queueLogEnabled": false,
+        "failureLogEnabled": true,
+        "tcpHost": "127.0.0.1",
+        "tcpPort": 502,
+        "tcpType": "DEFAULT",
+        "serialPort": "/dev/ttyUSB",
+        "serialType": "RTU-BUFFERD",
+        "serialBaudrate": 9600,
+        "serialDatabits": 8,
+        "serialStopbits": 1,
+        "serialParity": "none",
+        "serialConnectionDelay": 100,
+        "serialAsciiResponseStartDelimiter": "0x3A",
+        "unit_id": 1,
+        "commandDelay": 1,
+        "clientTimeout": 1000,
+        "reconnectOnTimeout": true,
+        "reconnectTimeout": 2000,
+        "parallelUnitIdsAllowed": true,
+        "showErrors": false,
+        "showWarnings": true,
+        "showLogs": true
+    },
+    {
+        "id": "uibase01",
+        "type": "ui-base",
+        "name": "IHM",
+        "path": "/dashboard",
+        "appIcon": "",
+        "includeClientData": true,
+        "acceptsClientConfig": [
+            "ui-notification",
+            "ui-control"
+        ],
+        "showPathInSidebar": false,
+        "headerContent": "page",
+        "navigationStyle": "default",
+        "titleBarStyle": "default",
+        "showReconnectNotification": true,
+        "notificationDisplayTime": 1,
+        "showDisconnectNotification": true,
+        "allowInstall": false
+    },
+    {
+        "id": "uitheme1",
+        "type": "ui-theme",
+        "name": "Sombre",
+        "colors": {
+            "surface": "#0e1626",
+            "primary": "#22d3ee",
+            "bgPage": "#0b1220",
+            "groupBg": "#131c2e",
+            "groupOutline": "#24324d"
+        },
+        "sizes": {
+            "density": "default",
+            "pagePadding": "12px",
+            "groupGap": "12px",
+            "groupBorderRadius": "4px",
+            "widgetGap": "12px"
+        }
+    },
+    {
+        "id": "uipage01",
+        "type": "ui-page",
+        "name": "Moteur asynchrone M1",
+        "ui": "uibase01",
+        "path": "/moteur",
+        "icon": "engine",
+        "layout": "grid",
+        "theme": "uitheme1",
+        "breakpoints": [
+            {
+                "name": "Default",
+                "px": 0,
+                "cols": 3
+            },
+            {
+                "name": "Tablet",
+                "px": 576,
+                "cols": 6
+            },
+            {
+                "name": "Small Desktop",
+                "px": 768,
+                "cols": 9
+            },
+            {
+                "name": "Desktop",
+                "px": 1024,
+                "cols": 12
+            }
+        ],
+        "order": 1,
+        "className": "",
+        "visible": "true",
+        "disabled": "false"
+    },
+    {
+        "id": "uigrpcmd",
+        "type": "ui-group",
+        "name": "Synoptique et commande",
+        "page": "uipage01",
+        "width": 5,
+        "height": 1,
+        "order": 1,
+        "showTitle": true,
+        "className": "",
+        "visible": true,
+        "disabled": false,
+        "groupType": "default"
+    },
+    {
+        "id": "uigrpvit",
+        "type": "ui-group",
+        "name": "Vitesse de rotation",
+        "page": "uipage01",
+        "width": 7,
+        "height": 1,
+        "order": 2,
+        "showTitle": true,
+        "className": "",
+        "visible": true,
+        "disabled": false,
+        "groupType": "default"
+    },
+    {
+        "id": "uigrpreg",
+        "type": "ui-group",
+        "name": "Réglages",
+        "page": "uipage01",
+        "width": 5,
+        "height": 1,
+        "order": 3,
+        "showTitle": true,
+        "className": "",
+        "visible": true,
+        "disabled": false,
+        "groupType": "default"
+    },
+    {
+        "id": "uigrpdet",
+        "type": "ui-group",
+        "name": "Détails",
+        "page": "uipage01",
+        "width": 7,
+        "height": 1,
+        "order": 4,
+        "showTitle": true,
+        "className": "",
+        "visible": true,
+        "disabled": false,
+        "groupType": "default"
+    },
+    {
+        "id": "tplstyle",
+        "type": "ui-template",
+        "z": "f10w0001",
+        "group": "",
+        "page": "",
+        "ui": "uibase01",
+        "name": "Thème sombre (CSS)",
+        "order": 0,
+        "width": 0,
+        "height": 0,
+        "head": "",
+        "format": "/* Thème sombre de l'IHM */\n.v-application, .nrdb-layout, .v-main { background: #0b1220 !important; color: #e6ebf5; }\n.v-app-bar.v-toolbar { background: #0e1626 !important; color: #e6ebf5 !important; border-bottom: 1px solid #24324d; }\n.nrdb-ui-group .v-card { background: #131c2e !important; color: #e6ebf5 !important; border: 1px solid #24324d !important; border-radius: 12px !important; box-shadow: none !important; }\n.nrdb-ui-group .v-card-title { color: #8a97b1; font-size: 12px !important; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; }\n.nrdb-ui-gauge text, .nrdb-ui-gauge .nrdb-ui-gauge-value, .nrdb-ui-gauge-title { fill: #e6ebf5; color: #e6ebf5; }\n.nrdb-ui-gauge .nrdb-ui-gauge-limits, .nrdb-ui-gauge label { color: #8a97b1; fill: #8a97b1; }",
+        "storeOutMessages": false,
+        "passthru": false,
+        "resendOnRefresh": true,
+        "templateScope": "site:style",
+        "className": "",
+        "x": 150,
+        "y": 40,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "mbrdcoil",
+        "type": "modbus-read",
+        "z": "f10w0001",
+        "name": "Coils 0-2 : marche, urgence, mode",
+        "topic": "coil",
+        "showStatusActivities": true,
+        "logIOActivities": false,
+        "showErrors": true,
+        "showWarnings": true,
+        "unitid": "1",
+        "dataType": "Coil",
+        "adr": "0",
+        "quantity": "3",
+        "rate": "200",
+        "rateUnit": "ms",
+        "delayOnStart": false,
+        "enableDeformedMessages": false,
+        "startDelayTime": "",
+        "server": "mbc1ient",
+        "useIOFile": false,
+        "ioFile": "",
+        "useIOForPayload": false,
+        "emptyMsgOnFail": false,
+        "x": 180,
+        "y": 220,
+        "wires": [
+            [
+                "fncalcul"
+            ],
+            []
+        ]
+    },
+    {
+        "id": "mbrdregl",
+        "type": "modbus-read",
+        "z": "f10w0001",
+        "name": "Holding registers 0-2 : réglages",
+        "topic": "reglages",
+        "showStatusActivities": true,
+        "logIOActivities": false,
+        "showErrors": true,
+        "showWarnings": true,
+        "unitid": "1",
+        "dataType": "HoldingRegister",
+        "adr": "0",
+        "quantity": "3",
+        "rate": "500",
+        "rateUnit": "ms",
+        "delayOnStart": false,
+        "enableDeformedMessages": false,
+        "startDelayTime": "",
+        "server": "mbc1ient",
+        "useIOFile": false,
+        "ioFile": "",
+        "useIOForPayload": false,
+        "emptyMsgOnFail": false,
+        "x": 180,
+        "y": 280,
+        "wires": [
+            [
+                "fncalcul"
+            ],
+            []
+        ]
+    },
+    {
+        "id": "mbrdvit1",
+        "type": "modbus-read",
+        "z": "f10w0001",
+        "name": "Input registers 0-1 : vitesse, consigne",
+        "topic": "vitesse",
+        "showStatusActivities": true,
+        "logIOActivities": false,
+        "showErrors": true,
+        "showWarnings": true,
+        "unitid": "1",
+        "dataType": "InputRegister",
+        "adr": "0",
+        "quantity": "2",
+        "rate": "200",
+        "rateUnit": "ms",
+        "delayOnStart": false,
+        "enableDeformedMessages": false,
+        "startDelayTime": "",
+        "server": "mbc1ient",
+        "useIOFile": false,
+        "ioFile": "",
+        "useIOForPayload": false,
+        "emptyMsgOnFail": false,
+        "x": 190,
+        "y": 340,
+        "wires": [
+            [
+                "fncalcul"
+            ],
+            []
+        ]
+    },
+    {
+        "id": "fncalcul",
+        "type": "function",
+        "z": "f10w0001",
+        "name": "Calculs (phase, accélération, compteurs)",
+        "func": "// Entrées : topics \"coil\", \"reglages\" et \"vitesse\" (lectures Modbus).\n// Sortie 1 : objet complet pour le synoptique, les réglages et les détails.\n// Sortie 2 : vitesse seule pour la jauge et la courbe.\n// On ne transmet jamais le message Modbus d'origine : il contient un tampon\n// binaire que le dashboard ne supporte pas.\nconst VITESSE_NOMINALE = 1500;   // tr/min, pleine échelle\nconst now = Date.now();\n\nif (msg.topic === \"coil\") {\n    // Ordre des coils : voir modbus_map.py\n    context.set(\"coils\", { marche: !!msg.payload[0], au: !!msg.payload[1], manuel: !!msg.payload[2] });\n    return null;\n}\nif (msg.topic === \"reglages\") {\n    context.set(\"reglages\", { consigne: msg.payload[0], montee: msg.payload[1], descente: msg.payload[2] });\n    return null;\n}\n\nconst vitesse = msg.payload[0];\nconst consigne = msg.payload[1];\nconst { marche, au, manuel } = context.get(\"coils\") || { marche: false, au: false, manuel: false };\n\n// Accélération : pente sur la dernière seconde (lisse l'échantillonnage à 0,2 s)\nlet hist = (context.get(\"hist\") || []).filter(p => now - p.t <= 1200);\nhist.push({ t: now, v: vitesse });\ncontext.set(\"hist\", hist);\nconst dt = (now - hist[0].t) / 1000;\nconst acceleration = dt >= 0.4 ? Math.round((vitesse - hist[0].v) / dt) : 0;\n\n// Compteurs tenus par l'IHM (remis à zéro au redémarrage de Node-RED)\nconst s = context.get(\"stats\") || { demarrages: 0, urgences: 0, tempsMarche: 0, dernier: now, marchePrec: false, auPrec: false, vmax: 0 };\nconst ecoule = (now - s.dernier) / 1000;\nif (marche && !s.marchePrec) { s.demarrages++; }\nif (au && !s.auPrec) { s.urgences++; }\nif (s.marchePrec && ecoule < 2) { s.tempsMarche += ecoule; }\ns.vmax = Math.max(s.vmax, vitesse);\ns.marchePrec = marche;\ns.auPrec = au;\ns.dernier = now;\ncontext.set(\"stats\", s);\n\nlet phase = \"ARRET\";\nif (au) { phase = \"URGENCE\"; }\nelse if (vitesse < consigne) { phase = \"ACCELERATION\"; }\nelse if (vitesse > consigne) { phase = \"DECELERATION\"; }\nelse if (marche) { phase = \"REGIME\"; }\n\nconst etat = {\n    marche, au, manuel, vitesse, consigne, phase, acceleration,\n    reglages: context.get(\"reglages\") || null,\n    pourcent: Math.round(100 * vitesse / VITESSE_NOMINALE),\n    nominale: VITESSE_NOMINALE,\n    demarrages: s.demarrages,\n    urgences: s.urgences,\n    tempsMarche: Math.round(s.tempsMarche),\n    vmax: s.vmax,\n    horodatage: now\n};\nreturn [{ topic: \"etat\", payload: etat }, { topic: \"Vitesse (tr/min)\", payload: vitesse }];",
+        "outputs": 2,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 480,
+        "y": 280,
+        "wires": [
+            [
+                "tplsynop",
+                "tplregla",
+                "tpldetai"
+            ],
+            [
+                "gaugevit",
+                "chartvit"
+            ]
+        ]
+    },
+    {
+        "id": "tplsynop",
+        "type": "ui-template",
+        "z": "f10w0001",
+        "group": "uigrpcmd",
+        "page": "",
+        "ui": "",
+        "name": "Synoptique + commandes",
+        "order": 1,
+        "width": 5,
+        "height": 11,
+        "head": "",
+        "format": "<template>\n  <div class=\"syn\" :class=\"{'syn-au': e.au && !perdu}\">\n    <div class=\"syn-top\">\n      <div class=\"syn-link\" :class=\"{ko: perdu}\">\n        <span class=\"dot\"></span>{{ perdu ? 'Liaison automate perdue' : 'Liaison automate OK' }}\n      </div>\n      <div class=\"syn-time\">{{ heure }}</div>\n    </div>\n\n    <div class=\"syn-alarm\" v-if=\"e.au && !perdu\">&#9888; ARRÊT D'URGENCE ENCLENCHÉ</div>\n\n    <svg class=\"syn-svg\" viewBox=\"0 0 360 180\" role=\"img\" aria-label=\"Moteur asynchrone\">\n      <rect x=\"70\" y=\"148\" width=\"190\" height=\"10\" rx=\"3\" class=\"m-base\"/>\n      <rect x=\"92\" y=\"136\" width=\"26\" height=\"14\" class=\"m-base\"/><rect x=\"212\" y=\"136\" width=\"26\" height=\"14\" class=\"m-base\"/>\n      <rect x=\"80\" y=\"42\" width=\"170\" height=\"96\" rx=\"14\" class=\"m-body\" :class=\"{on: e.marche, au: e.au}\"/>\n      <g class=\"m-fins\"><line v-for=\"i in 9\" :key=\"i\" :x1=\"92 + i*15\" y1=\"48\" :x2=\"92 + i*15\" y2=\"132\"/></g>\n      <rect x=\"140\" y=\"20\" width=\"50\" height=\"26\" rx=\"4\" class=\"m-box\"/>\n      <circle cx=\"152\" cy=\"33\" r=\"3\" class=\"m-led\" :class=\"{on: e.marche, au: e.au}\"/>\n      <text x=\"162\" y=\"37\" class=\"m-boxtxt\">3~</text>\n      <rect x=\"40\" y=\"52\" width=\"44\" height=\"76\" rx=\"10\" class=\"m-cap\"/>\n      <g :transform=\"'rotate(' + angle + ' 62 90)'\">\n        <g v-for=\"k in 6\" :key=\"k\" :transform=\"'rotate(' + (k*60) + ' 62 90)'\">\n          <path d=\"M62 90 L58 62 Q62 56 66 62 Z\" class=\"m-blade\" :class=\"{on: e.vitesse > 0}\"/>\n        </g>\n        <circle cx=\"62\" cy=\"90\" r=\"6\" class=\"m-hub\"/>\n      </g>\n      <rect x=\"250\" y=\"82\" width=\"46\" height=\"16\" class=\"m-shaft\"/>\n      <g :transform=\"'rotate(' + angle + ' 310 90)'\">\n        <circle cx=\"310\" cy=\"90\" r=\"22\" class=\"m-coupling\" :class=\"{on: e.vitesse > 0}\"/>\n        <line x1=\"310\" y1=\"70\" x2=\"310\" y2=\"110\" class=\"m-mark\"/><line x1=\"290\" y1=\"90\" x2=\"330\" y2=\"90\" class=\"m-mark\"/>\n        <circle cx=\"310\" cy=\"90\" r=\"5\" class=\"m-hub\"/>\n      </g>\n      <text x=\"165\" y=\"98\" class=\"m-label\">M1</text>\n      <text x=\"165\" y=\"116\" class=\"m-sub\">moteur asynchrone</text>\n    </svg>\n\n    <div class=\"syn-phase\" :class=\"'ph-' + (perdu ? 'PERDU' : e.phase)\">{{ libelle }}</div>\n    <div class=\"syn-speed\"><b>{{ perdu ? '---' : Math.round(e.vitesse) }}</b><span>tr/min</span></div>\n    <div class=\"syn-cons\">Consigne suivie : <b>{{ perdu ? '---' : e.consigne }}</b> tr/min</div>\n    <div class=\"syn-bar\"><i :style=\"{width: (perdu ? 0 : e.pourcent) + '%'}\"></i><u :style=\"{left: (perdu ? 0 : Math.round(100 * e.consigne / 1500)) + '%'}\"></u></div>\n\n    <div class=\"syn-mode\">\n      <span>Mode</span>\n      <button class=\"b-auto\" :class=\"{act: !e.manuel && !perdu}\" :disabled=\"perdu\" @click=\"ordre('manuel', false)\">AUTO</button>\n      <button class=\"b-manu\" :class=\"{act: e.manuel && !perdu}\" :disabled=\"perdu\" @click=\"ordre('manuel', true)\">MANUEL</button>\n    </div>\n\n    <div class=\"syn-btns\">\n      <button class=\"b-on\" :class=\"{act: e.marche}\" :disabled=\"perdu || e.au\" @click=\"ordre('marche', true)\">&#9654; MARCHE</button>\n      <button class=\"b-off\" :class=\"{act: !e.marche && !perdu}\" :disabled=\"perdu\" @click=\"ordre('marche', false)\">&#9632; ARRÊT</button>\n    </div>\n\n    <button v-if=\"!e.au\" class=\"b-au\" :disabled=\"perdu\" @click=\"ordre('urgence', true)\"><span>ARRÊT<br>D'URGENCE</span></button>\n    <button v-else class=\"b-rearm\" :disabled=\"perdu\" @click=\"ordre('urgence', false)\">&#8635; RÉARMER L'ARRÊT D'URGENCE</button>\n  </div>\n</template>\n\n<script>\nexport default {\n  data () {\n    return { e: { marche: false, au: false, manuel: false, vitesse: 0, consigne: 0, phase: 'ARRET', pourcent: 0 }, recu: 0, now: Date.now(), angle: 0, raf: null, tick: null, prev: 0 }\n  },\n  computed: {\n    perdu () { return this.now - this.recu > 2000 },\n    heure () { return this.recu ? new Date(this.recu).toLocaleTimeString('fr-FR') : '--:--:--' },\n    libelle () {\n      if (this.perdu) return 'HORS LIGNE'\n      return { ARRET: 'À L\\'ARRÊT', ACCELERATION: 'ACCÉLÉRATION', REGIME: 'RÉGIME ÉTABLI', DECELERATION: 'DÉCÉLÉRATION', URGENCE: 'ARRÊT D\\'URGENCE' }[this.e.phase]\n    }\n  },\n  watch: {\n    msg (m) { if (m && m.topic === 'etat') { this.e = m.payload; this.recu = Date.now() } }\n  },\n  methods: {\n    ordre (topic, payload) { this.send({ topic: topic, payload: payload }) },\n    animer (t) {\n      const dt = this.prev ? (t - this.prev) / 1000 : 0\n      this.prev = t\n      // Rotation ralentie pour rester visible : 1500 tr/min = 1,5 tour/s à l'écran\n      if (!this.perdu) this.angle = (this.angle + 540 * (this.e.vitesse / 1500) * dt) % 360\n      this.raf = requestAnimationFrame(this.animer)\n    }\n  },\n  mounted () {\n    this.tick = setInterval(() => { this.now = Date.now() }, 500)\n    this.raf = requestAnimationFrame(this.animer)\n  },\n  unmounted () { clearInterval(this.tick); cancelAnimationFrame(this.raf) }\n}\n</script>\n\n<style>\n.syn { color: #e6ebf5; display: flex; flex-direction: column; gap: 10px; }\n.syn button { font-family: inherit; cursor: pointer; }\n.syn button:disabled { opacity: .35; cursor: not-allowed; }\n.syn-top { display: flex; justify-content: space-between; align-items: center; font-size: 13px; }\n.syn-link { display: flex; align-items: center; gap: 8px; color: #22c55e; font-weight: 600; }\n.syn-link .dot { width: 10px; height: 10px; border-radius: 50%; background: #22c55e; box-shadow: 0 0 8px #22c55e; }\n.syn-link.ko { color: #ef4444; } .syn-link.ko .dot { background: #ef4444; box-shadow: 0 0 8px #ef4444; }\n.syn-time { color: #8a97b1; font-variant-numeric: tabular-nums; }\n.syn-alarm { text-align: center; padding: 8px; border-radius: 8px; background: #ef4444; color: #fff; font-weight: 800; letter-spacing: 1.5px; animation: syn-blink 1s steps(2, start) infinite; }\n@keyframes syn-blink { to { background: #7f1d1d; } }\n.syn-svg { width: 100%; max-height: 200px; }\n.m-base { fill: #2a3752; } .m-shaft { fill: #9aa7bf; }\n.m-body { fill: #1d2a44; stroke: #3a4a6b; stroke-width: 2; transition: stroke .3s, filter .3s; }\n.m-body.on { stroke: #22d3ee; filter: drop-shadow(0 0 6px rgba(34,211,238,.55)); }\n.m-body.au { stroke: #ef4444; filter: drop-shadow(0 0 6px rgba(239,68,68,.6)); }\n.m-fins line { stroke: #2f3f60; stroke-width: 3; }\n.m-box { fill: #24324d; stroke: #3a4a6b; } .m-boxtxt { fill: #8a97b1; font-size: 12px; font-weight: 700; }\n.m-led { fill: #475674; } .m-led.on { fill: #22c55e; filter: drop-shadow(0 0 4px #22c55e); } .m-led.au { fill: #ef4444; filter: drop-shadow(0 0 4px #ef4444); }\n.m-cap { fill: #16213a; stroke: #3a4a6b; stroke-width: 2; }\n.m-blade { fill: #50618a; } .m-blade.on { fill: #22d3ee; }\n.m-hub { fill: #cbd5e6; }\n.m-coupling { fill: #1d2a44; stroke: #50618a; stroke-width: 4; } .m-coupling.on { stroke: #22d3ee; }\n.m-mark { stroke: #7f8eac; stroke-width: 3; }\n.m-label { fill: #e6ebf5; font-size: 22px; font-weight: 800; text-anchor: middle; }\n.m-sub { fill: #8a97b1; font-size: 10px; text-anchor: middle; letter-spacing: 1px; text-transform: uppercase; }\n.syn-phase { align-self: center; padding: 5px 16px; border-radius: 999px; font-size: 13px; font-weight: 800; letter-spacing: 1.5px; border: 1px solid currentColor; color: #8a97b1; }\n.syn-phase.ph-ACCELERATION { color: #f59e0b; } .syn-phase.ph-REGIME { color: #22c55e; } .syn-phase.ph-DECELERATION { color: #22d3ee; } .syn-phase.ph-URGENCE { color: #ef4444; }\n.syn-speed { text-align: center; line-height: 1; }\n.syn-speed b { font-size: 54px; font-weight: 800; font-variant-numeric: tabular-nums; }\n.syn-speed span { margin-left: 8px; color: #8a97b1; font-size: 16px; }\n.syn-cons { text-align: center; color: #8a97b1; font-size: 13px; } .syn-cons b { color: #e6ebf5; font-variant-numeric: tabular-nums; }\n.syn-bar { position: relative; height: 8px; border-radius: 4px; background: #1d2a44; }\n.syn-bar i { display: block; height: 100%; border-radius: 4px; background: linear-gradient(90deg, #22d3ee, #22c55e); transition: width .2s linear; }\n.syn-bar u { position: absolute; top: -4px; width: 3px; height: 16px; margin-left: -1px; background: #f59e0b; border-radius: 2px; transition: left .2s linear; }\n.syn-mode { display: grid; grid-template-columns: auto 1fr 1fr; align-items: center; gap: 0; margin-top: 4px; }\n.syn-mode span { color: #8a97b1; font-size: 12px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; margin-right: 12px; }\n.syn-mode button { padding: 9px 0; font-size: 13px; font-weight: 800; letter-spacing: 1px; background: #0e1626; color: #8a97b1; border: 1px solid #24324d; }\n.syn-mode .b-auto { border-radius: 8px 0 0 8px; } .syn-mode .b-manu { border-radius: 0 8px 8px 0; border-left: none; }\n.syn-mode button.act { background: #22d3ee; color: #062730; border-color: #22d3ee; }\n.syn-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }\n.syn-btns button { padding: 14px 0; border-radius: 10px; font-size: 16px; font-weight: 800; letter-spacing: 1px; background: transparent; border: 2px solid; transition: background .15s, color .15s, opacity .15s; }\n.syn-btns .b-on { color: #22c55e; border-color: #22c55e; } .syn-btns .b-on:hover:enabled, .syn-btns .b-on.act { background: #22c55e; color: #06240f; }\n.syn-btns .b-off { color: #ef4444; border-color: #ef4444; } .syn-btns .b-off:hover:enabled, .syn-btns .b-off.act { background: #ef4444; color: #2b0606; }\n.b-au { align-self: center; width: 118px; height: 118px; border-radius: 50%; border: 8px solid #facc15; background: radial-gradient(circle at 35% 30%, #ff7b7b, #dc2626 55%, #991b1b); color: #fff; font-size: 12px; font-weight: 900; letter-spacing: .3px; line-height: 1.25; box-shadow: 0 6px 0 #7f1d1d, 0 10px 18px rgba(0,0,0,.5); transition: transform .08s, box-shadow .08s; }\n.b-au span { display: block; white-space: nowrap; }\n.b-au:active:enabled { transform: translateY(5px); box-shadow: 0 1px 0 #7f1d1d, 0 4px 8px rgba(0,0,0,.5); }\n.b-rearm { padding: 16px 0; border-radius: 10px; border: 2px solid #f59e0b; background: transparent; color: #f59e0b; font-size: 15px; font-weight: 800; letter-spacing: 1px; }\n.b-rearm:hover:enabled { background: #f59e0b; color: #2b1a03; }\n</style>",
+        "storeOutMessages": false,
+        "passthru": false,
+        "resendOnRefresh": true,
+        "templateScope": "local",
+        "className": "",
+        "x": 800,
+        "y": 160,
+        "wires": [
+            [
+                "fnecrit1"
+            ]
+        ]
+    },
+    {
+        "id": "tplregla",
+        "type": "ui-template",
+        "z": "f10w0001",
+        "group": "uigrpreg",
+        "page": "",
+        "ui": "",
+        "name": "Réglages (curseurs)",
+        "order": 1,
+        "width": 5,
+        "height": 5,
+        "head": "",
+        "format": "<template>\n  <div class=\"reg\">\n    <div class=\"reg-row\" v-for=\"r in lignes\" :key=\"r.cle\">\n      <div class=\"reg-head\">\n        <label :for=\"'reg-' + r.cle\">{{ r.titre }}</label>\n        <output>{{ local[r.cle] }}<small> {{ r.unite }}</small></output>\n      </div>\n      <input type=\"range\" :id=\"'reg-' + r.cle\" :class=\"'s-' + r.cle\" :min=\"r.min\" :max=\"r.max\" :step=\"r.pas\" :disabled=\"!pret\"\n             v-model.number=\"local[r.cle]\" @input=\"toucher(r.cle)\" @change=\"envoyer(r)\">\n      <div class=\"reg-foot\"><span>{{ r.min }}</span><em>{{ r.aide }}</em><span>{{ r.max }}</span></div>\n    </div>\n    <div class=\"reg-actions\">\n      <button class=\"b-defaut\" :disabled=\"!pret\" @click=\"defauts\">Valeurs par défaut</button>\n      <span>{{ pret ? 'Valeurs relues dans l\\'automate' : 'En attente de l\\'automate...' }}</span>\n    </div>\n  </div>\n</template>\n\n<script>\nexport default {\n  data () {\n    return {\n      pret: false,\n      manuel: false,\n      local: { consigne: 750, montee: 300, descente: 150 },\n      touche: { consigne: 0, montee: 0, descente: 0 }\n    }\n  },\n  computed: {\n    lignes () {\n      return [\n        { cle: 'consigne', topic: 'consigne', titre: 'Consigne de vitesse (mode manuel)', unite: 'tr/min', min: 0, max: 1500, pas: 10, defaut: 750,\n          aide: this.manuel ? 'appliquée : mode manuel actif' : 'sans effet en mode auto (1500 tr/min)' },\n        { cle: 'montee', topic: 'rampe_montee', titre: 'Rampe d\\'accélération', unite: 'tr/min/s', min: 50, max: 3000, pas: 50, defaut: 300, aide: this.duree(this.local.montee) },\n        { cle: 'descente', topic: 'rampe_descente', titre: 'Rampe de décélération', unite: 'tr/min/s', min: 50, max: 3000, pas: 50, defaut: 150, aide: this.duree(this.local.descente) }\n      ]\n    }\n  },\n  watch: {\n    msg (m) {\n      if (!m || m.topic !== 'etat' || !m.payload.reglages) return\n      this.manuel = m.payload.manuel\n      this.pret = true\n      // La valeur de l'automate fait foi, sauf pendant qu'on manipule le curseur.\n      const maintenant = Date.now()\n      for (const cle of ['consigne', 'montee', 'descente']) {\n        if (maintenant - this.touche[cle] > 1500) this.local[cle] = m.payload.reglages[cle]\n      }\n    }\n  },\n  methods: {\n    duree (rampe) { return '0 à 1500 tr/min en ' + (1500 / rampe).toFixed(1).replace('.', ',') + ' s' },\n    toucher (cle) { this.touche[cle] = Date.now() },\n    envoyer (r) { this.toucher(r.cle); this.send({ topic: r.topic, payload: this.local[r.cle] }) },\n    defauts () { for (const r of this.lignes) { this.local[r.cle] = r.defaut; this.envoyer(r) } }\n  }\n}\n</script>\n\n<style>\n.reg { color: #e6ebf5; display: flex; flex-direction: column; gap: 14px; }\n.reg-head { display: flex; justify-content: space-between; align-items: baseline; }\n.reg-head label { color: #8a97b1; font-size: 12px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; }\n.reg-head output { font-size: 22px; font-weight: 800; font-variant-numeric: tabular-nums; }\n.reg-head small { margin-left: 4px; font-size: 12px; font-weight: 600; color: #8a97b1; }\n.reg input[type=range] { -webkit-appearance: none; appearance: none; width: 100%; height: 8px; border-radius: 4px; background: #1d2a44; outline: none; margin: 8px 0 4px; }\n.reg input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 22px; height: 22px; border-radius: 50%; background: #22d3ee; border: 3px solid #0b1220; box-shadow: 0 0 0 1px #22d3ee; cursor: pointer; }\n.reg input[type=range]::-moz-range-thumb { width: 18px; height: 18px; border-radius: 50%; background: #22d3ee; border: 3px solid #0b1220; cursor: pointer; }\n.reg input[type=range]:disabled { opacity: .4; }\n.reg-foot { display: flex; justify-content: space-between; color: #8a97b1; font-size: 11px; } .reg-foot em { font-style: normal; color: #e6ebf5; opacity: .8; }\n.reg-actions { display: flex; align-items: center; gap: 12px; color: #8a97b1; font-size: 11px; }\n.b-defaut { padding: 8px 14px; border-radius: 8px; border: 1px solid #24324d; background: #0e1626; color: #e6ebf5; font-family: inherit; font-size: 12px; font-weight: 700; cursor: pointer; }\n.b-defaut:hover:enabled { border-color: #22d3ee; color: #22d3ee; } .b-defaut:disabled { opacity: .4; cursor: not-allowed; }\n</style>",
+        "storeOutMessages": false,
+        "passthru": false,
+        "resendOnRefresh": true,
+        "templateScope": "local",
+        "className": "",
+        "x": 790,
+        "y": 220,
+        "wires": [
+            [
+                "fnecrit1"
+            ]
+        ]
+    },
+    {
+        "id": "tpldetai",
+        "type": "ui-template",
+        "z": "f10w0001",
+        "group": "uigrpdet",
+        "page": "",
+        "ui": "",
+        "name": "Tuiles de détails",
+        "order": 1,
+        "width": 7,
+        "height": 5,
+        "head": "",
+        "format": "<template>\n  <div class=\"det\">\n    <div class=\"tile\" v-for=\"t in tuiles\" :key=\"t.titre\">\n      <div class=\"tile-h\">{{ t.titre }}</div>\n      <div class=\"tile-v\" :style=\"{color: t.couleur}\">{{ t.valeur }}<small v-if=\"t.unite\"> {{ t.unite }}</small></div>\n      <div class=\"tile-s\">{{ t.detail }}</div>\n    </div>\n  </div>\n</template>\n\n<script>\nexport default {\n  data () { return { e: null } },\n  watch: { msg (m) { if (m && m.topic === 'etat') this.e = m.payload } },\n  computed: {\n    tuiles () {\n      const e = this.e || { marche: false, au: false, manuel: false, vitesse: 0, consigne: 0, pourcent: 0, acceleration: 0, demarrages: 0, urgences: 0, tempsMarche: 0, vmax: 0, nominale: 1500 }\n      const duree = s => String(Math.floor(s / 3600)).padStart(2, '0') + ':' + String(Math.floor(s % 3600 / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0')\n      const signe = e.acceleration > 0 ? '+' : ''\n      return [\n        { titre: 'Commande', valeur: e.au ? 'URGENCE' : (e.marche ? 'MARCHE' : 'ARRÊT'), couleur: e.au ? '#ef4444' : (e.marche ? '#22c55e' : '#8a97b1'), detail: 'Coils 0 et 1' },\n        { titre: 'Mode', valeur: e.manuel ? 'MANUEL' : 'AUTO', couleur: '#22d3ee', detail: 'Coil 2' },\n        { titre: 'Consigne suivie', valeur: e.consigne, unite: 'tr/min', couleur: '#f59e0b', detail: 'Input register 1' },\n        { titre: 'Vitesse mesurée', valeur: Math.round(e.vitesse), unite: 'tr/min', couleur: '#e6ebf5', detail: 'Input register 0, ' + e.pourcent + ' % du nominal' },\n        { titre: 'Accélération', valeur: signe + e.acceleration, unite: 'tr/min/s', couleur: e.acceleration > 0 ? '#f59e0b' : (e.acceleration < 0 ? '#22d3ee' : '#8a97b1'), detail: 'Calculée sur 1 s' },\n        { titre: 'Vitesse max atteinte', valeur: Math.round(e.vmax), unite: 'tr/min', couleur: '#e6ebf5', detail: 'Depuis le lancement de l\\'IHM' },\n        { titre: 'Temps de marche', valeur: duree(e.tempsMarche), couleur: '#e6ebf5', detail: 'Depuis le lancement de l\\'IHM' },\n        { titre: 'Démarrages', valeur: e.demarrages, couleur: '#e6ebf5', detail: 'Arrêts d\\'urgence : ' + e.urgences }\n      ]\n    }\n  }\n}\n</script>\n\n<style>\n.det { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }\n@media (max-width: 1100px) { .det { grid-template-columns: repeat(2, minmax(0, 1fr)); } }\n.tile { background: #0e1626; border: 1px solid #24324d; border-radius: 10px; padding: 12px 14px; min-width: 0; }\n.tile-h { color: #8a97b1; font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; }\n.tile-v { font-size: 22px; font-weight: 800; line-height: 1.35; font-variant-numeric: tabular-nums; white-space: nowrap; }\n.tile-v small { margin-left: 3px; font-size: 12px; font-weight: 600; color: #8a97b1; }\n.tile-s { color: #8a97b1; font-size: 11px; }\n</style>",
+        "storeOutMessages": false,
+        "passthru": false,
+        "resendOnRefresh": true,
+        "templateScope": "local",
+        "className": "",
+        "x": 780,
+        "y": 300,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "fnecrit1",
+        "type": "function",
+        "z": "f10w0001",
+        "name": "Table d'écriture (ordre -> adresse Modbus)",
+        "func": "// Traduit les ordres de l'IHM en écritures Modbus.\n// Seul endroit du flow où figurent les adresses d'écriture : elles doivent\n// rester identiques à celles de src/tp_simu_auto/modbus_map.py.\nconst FC_COIL = 5, FC_REGISTRE = 6, ESCLAVE = 1;\nconst TABLE = {\n    marche:         { fc: FC_COIL,     address: 0 },   // CO_MOTEUR\n    urgence:        { fc: FC_COIL,     address: 1 },   // CO_ARRET_URGENCE\n    manuel:         { fc: FC_COIL,     address: 2 },   // CO_MODE_MANUEL\n    consigne:       { fc: FC_REGISTRE, address: 0 },   // HR_CONSIGNE_MANUELLE\n    rampe_montee:   { fc: FC_REGISTRE, address: 1 },   // HR_RAMPE_MONTEE\n    rampe_descente: { fc: FC_REGISTRE, address: 2 }    // HR_RAMPE_DESCENTE\n};\nconst cible = TABLE[msg.topic];\nif (!cible) { node.warn(\"Ordre inconnu : \" + msg.topic); return null; }\n\nlet value;\nif (cible.fc === FC_COIL) {\n    value = msg.payload === true;\n} else {\n    value = Math.round(Number(msg.payload));\n    if (!(value >= 0 && value <= 65535)) { node.warn(\"Valeur refusée pour \" + msg.topic + \" : \" + msg.payload); return null; }\n}\nreturn { payload: { value, fc: cible.fc, unitid: ESCLAVE, address: cible.address, quantity: 1 } };",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 990,
+        "y": 100,
+        "wires": [
+            [
+                "mbwrite1"
+            ]
+        ]
+    },
+    {
+        "id": "mbwrite1",
+        "type": "modbus-flex-write",
+        "z": "f10w0001",
+        "name": "Écriture Modbus",
+        "showStatusActivities": true,
+        "showErrors": true,
+        "showWarnings": true,
+        "server": "mbc1ient",
+        "emptyMsgOnFail": false,
+        "keepMsgProperties": false,
+        "delayOnStart": false,
+        "startDelayTime": "",
+        "x": 1160,
+        "y": 100,
+        "wires": [
+            [],
+            []
+        ]
+    },
+    {
+        "id": "gaugevit",
+        "type": "ui-gauge",
+        "z": "f10w0001",
+        "name": "Jauge vitesse",
+        "group": "uigrpvit",
+        "order": 1,
+        "value": "payload",
+        "valueType": "msg",
+        "width": 7,
+        "height": 4,
+        "gtype": "gauge-34",
+        "gstyle": "needle",
+        "title": "",
+        "alwaysShowTitle": false,
+        "floatingTitlePosition": "top-left",
+        "units": "tr/min",
+        "icon": "",
+        "prefix": "",
+        "suffix": "",
+        "segments": [
+            {
+                "from": "0",
+                "color": "#475674"
+            },
+            {
+                "from": "1",
+                "color": "#22d3ee"
+            },
+            {
+                "from": "1450",
+                "color": "#22c55e"
+            }
+        ],
+        "min": 0,
+        "max": 1500,
+        "sizeThickness": 16,
+        "sizeGap": 4,
+        "sizeKeyThickness": 8,
+        "styleRounded": true,
+        "styleGlow": false,
+        "className": "",
+        "x": 800,
+        "y": 380,
+        "wires": []
+    },
+    {
+        "id": "chartvit",
+        "type": "ui-chart",
+        "z": "f10w0001",
+        "group": "uigrpvit",
+        "name": "Courbe vitesse",
+        "label": "Historique sur 1 minute",
+        "order": 2,
+        "chartType": "line",
+        "category": "topic",
+        "categoryType": "msg",
+        "xAxisLabel": "",
+        "xAxisProperty": "",
+        "xAxisPropertyType": "timestamp",
+        "xAxisType": "time",
+        "xAxisFormat": "",
+        "xAxisFormatType": "auto",
+        "xmin": "",
+        "xmax": "",
+        "yAxisLabel": "tr/min",
+        "yAxisProperty": "payload",
+        "yAxisPropertyType": "msg",
+        "ymin": "0",
+        "ymax": "1500",
+        "bins": 10,
+        "action": "append",
+        "stackSeries": false,
+        "pointShape": "circle",
+        "pointRadius": 0,
+        "showLegend": false,
+        "removeOlder": 1,
+        "removeOlderUnit": "60",
+        "removeOlderPoints": "",
+        "colors": [
+            "#22d3ee",
+            "#FF0000",
+            "#FF7F0E",
+            "#2CA02C",
+            "#A347E1",
+            "#D62728",
+            "#FF9896",
+            "#9467BD",
+            "#C5B0D5"
+        ],
+        "textColor": [
+            "#8a97b1"
+        ],
+        "textColorDefault": false,
+        "gridColor": [
+            "#24324d"
+        ],
+        "gridColorDefault": false,
+        "width": 7,
+        "height": 7,
+        "className": "",
+        "interpolation": "linear",
+        "x": 800,
+        "y": 440,
+        "wires": [
+            []
+        ]
+    }
+]
