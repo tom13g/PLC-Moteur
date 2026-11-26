@@ -64,12 +64,14 @@ En **Modbus TCP**, les trames circulent sur un réseau Ethernet, par défaut sur
 
 Un équipement Modbus expose quatre zones mémoire distinctes. Chacune a sa propre numérotation qui commence à 0.
 
-| Zone | Taille d'une case | Accès par le client | Usage typique | Utilisation dans ce projet |
-|------|-------------------|---------------------|---------------|-----------------------------|
-| **Coils** (bobines) | 1 bit | Lecture **et** écriture | Sorties TOR, commandes marche/arrêt | Marche moteur, arrêt d'urgence, mode |
-| **Discrete Inputs** (entrées TOR) | 1 bit | Lecture seule | Capteurs TOR (fin de course, bouton...) | Non utilisées (zone présente mais vide) |
-| **Holding Registers** (registres de maintien) | 16 bits | Lecture **et** écriture | Consignes, paramètres | Consigne manuelle, rampes |
-| **Input Registers** (registres d'entrée) | 16 bits | Lecture seule | Mesures analogiques | Vitesse mesurée, consigne suivie |
+| Zone | Taille d'une case | Accès par le client | Usage typique |
+|------|-------------------|---------------------|---------------|
+| **Coils** (bobines) | 1 bit | Lecture **et** écriture | Sorties TOR, commandes marche/arrêt |
+| **Discrete Inputs** (entrées TOR) | 1 bit | Lecture seule | Capteurs TOR (fin de course, bouton...) |
+| **Holding Registers** (registres de maintien) | 16 bits | Lecture **et** écriture | Consignes, paramètres |
+| **Input Registers** (registres d'entrée) | 16 bits | Lecture seule | Mesures analogiques |
+
+Les variables du projet placées dans chaque zone sont toutes listées dans le tableau unique de la [section 3](#3-table-déchange-modbus-de-lautomate).
 
 « Lecture seule » s'entend **du point de vue du client** : le client ne peut pas écrire dans un input register, mais l'automate lui-même y écrit ses mesures à chaque cycle.
 
@@ -79,12 +81,12 @@ Chaque requête Modbus porte un **code fonction** qui indique la zone visée et 
 
 | Code | Nom | Zone | Utilisé par |
 |------|-----|------|-------------|
-| 1 | Read Coils | Coils | `client.py`, Node-RED (lecture de l'état) |
+| 1 | Read Coils | Coils | `client.py`, Node-RED |
 | 2 | Read Discrete Inputs | Discrete inputs | — |
-| 3 | Read Holding Registers | Holding registers | Node-RED (relecture des réglages) |
-| 4 | Read Input Registers | Input registers | `client.py`, Node-RED (vitesse, consigne) |
-| 5 | Write Single Coil | Coils | `client.py`, Node-RED (marche, AU, mode) |
-| 6 | Write Single Register | Holding registers | Node-RED (curseurs de réglage) |
+| 3 | Read Holding Registers | Holding registers | Node-RED |
+| 4 | Read Input Registers | Input registers | `client.py`, Node-RED |
+| 5 | Write Single Coil | Coils | `client.py`, Node-RED |
+| 6 | Write Single Register | Holding registers | Node-RED |
 | 15 | Write Multiple Coils | Coils | — |
 | 16 | Write Multiple Registers | Holding registers | — |
 
@@ -109,67 +111,27 @@ Un registre contient un entier non signé de **0 à 65 535**. Pour transmettre u
 
 ## 3. Table d'échange Modbus de l'automate
 
-Serveur : **port 502**, **esclave n°1**. Adresses à partir de 0.
+Serveur : **port 502**, **esclave n°1**. Adresses à partir de 0. **Toutes les variables Modbus du projet sont dans ce tableau unique.**
 
-### Vue d'ensemble des tables Modbus
+| Table Modbus | Nature | Accès client | Codes fonction | Adr. | Notation hist. | Variable | Constante Python (`modbus_map.py`) | Attribut Python (`Automate`) | Topic Node-RED (écriture) | Unité | Plage | Défaut |
+|--------------|--------|--------------|----------------|------|----------------|----------|------------------------------------|------------------------------|---------------------------|-------|-------|--------|
+| Coil | Bit TOR — commande | Lecture / écriture | 1, 5, 15 | 0 | 00001 | Marche / arrêt du moteur (`True` = marche). **Remis à `False` par l'automate en arrêt d'urgence** | `CO_MOTEUR` | `moteur_en_marche` | `marche` | — | `False` / `True` | `False` |
+| Coil | Bit TOR — commande | Lecture / écriture | 1, 5, 15 | 1 | 00002 | Arrêt d'urgence (`True` = enclenché, `False` = réarmé) | `CO_ARRET_URGENCE` | `arret_urgence` | `urgence` | — | `False` / `True` | `False` |
+| Coil | Bit TOR — commande | Lecture / écriture | 1, 5, 15 | 2 | 00003 | Mode (`False` = automatique, `True` = manuel) | `CO_MODE_MANUEL` | `mode_manuel` | `manuel` | — | `False` / `True` | `False` |
+| Coil | Bit TOR | Lecture / écriture | 1, 5, 15 | 3 à 15 | 00004 à 00016 | Réservés, non utilisés | — | — | — | — | `False` / `True` | `False` |
+| Discrete Input | Bit TOR — état | Lecture seule | 2 | 0 à 15 | 10001 à 10016 | Non utilisées (zone présente mais vide) | — | — | — | — | `False` | `False` |
+| Holding Register | Mot 16 bits — paramètre / consigne | Lecture / écriture | 3, 6, 16 | 0 | 40001 | Consigne de vitesse du mode manuel. **Bornée par l'automate** | `HR_CONSIGNE_MANUELLE` | `consigne_manuelle` | `consigne` | tr/min | 0 à 1500 | 750 |
+| Holding Register | Mot 16 bits — paramètre | Lecture / écriture | 3, 6, 16 | 1 | 40002 | Rampe d'accélération. **Bornée par l'automate** | `HR_RAMPE_MONTEE` | `vitesse_montee` | `rampe_montee` | tr/min/s | 50 à 3000 | 300 |
+| Holding Register | Mot 16 bits — paramètre | Lecture / écriture | 3, 6, 16 | 2 | 40003 | Rampe de décélération (arrêt normal). **Bornée par l'automate** | `HR_RAMPE_DESCENTE` | `vitesse_descente` | `rampe_descente` | tr/min/s | 50 à 3000 | 150 |
+| Input Register | Mot 16 bits — mesure | Lecture seule | 4 | 0 | 30001 | Vitesse de rotation mesurée | `IR_VITESSE` | `vitesse` | — (lecture seule) | tr/min | 0 à 1500 | 0 |
+| Input Register | Mot 16 bits — mesure | Lecture seule | 4 | 1 | 30002 | Consigne de vitesse réellement suivie par l'automate | `IR_CONSIGNE` | `consigne` (propriété) | — (lecture seule) | tr/min | 0 à 1500 | 0 |
 
-| Table Modbus | Nature de la donnée | Taille | Accès client | Codes fonction | Adresses utilisées | Contenu dans ce projet |
-|--------------|---------------------|--------|--------------|----------------|--------------------|------------------------|
-| **Coils** | TOR (tout ou rien), **commandes** envoyées à l'automate | 1 bit | Lecture / écriture | 1, 5, 15 | 0 à 2 (3 à 15 réservés) | Marche moteur, arrêt d'urgence, mode auto/manuel |
-| **Discrete Inputs** | TOR, **états** lus par l'automate (capteurs TOR) | 1 bit | Lecture seule | 2 | aucune (0 à 15 à `False`) | Non utilisée |
-| **Holding Registers** | Analogique (entier 16 bits), **paramètres / consignes** | 16 bits | Lecture / écriture | 3, 6, 16 | 0 à 2 | Consigne manuelle, rampe d'accélération, rampe de décélération |
-| **Input Registers** | Analogique (entier 16 bits), **mesures** produites par l'automate | 16 bits | Lecture seule | 4 | 0 à 1 | Vitesse mesurée, consigne suivie |
+**Notes :**
 
-### Toutes les variables en un tableau
-
-| Table | Adr. | Notation hist. | Variable | Nature | Sens | Unité | Plage | Défaut |
-|-------|------|----------------|----------|--------|------|-------|-------|--------|
-| Coil | 0 | 00001 | Marche / arrêt moteur | Commande TOR | IHM → automate (l'automate peut la remettre à `False`) | — | `False` / `True` | `False` |
-| Coil | 1 | 00002 | Arrêt d'urgence | Commande TOR | IHM → automate | — | `False` / `True` | `False` |
-| Coil | 2 | 00003 | Mode manuel | Commande TOR | IHM → automate | — | `False` = auto, `True` = manuel | `False` |
-| Holding Register | 0 | 40001 | Consigne manuelle | Paramètre analogique | IHM → automate (borné par l'automate) | tr/min | 0 à 1500 | 750 |
-| Holding Register | 1 | 40002 | Rampe d'accélération | Paramètre analogique | IHM → automate (borné par l'automate) | tr/min/s | 50 à 3000 | 300 |
-| Holding Register | 2 | 40003 | Rampe de décélération | Paramètre analogique | IHM → automate (borné par l'automate) | tr/min/s | 50 à 3000 | 150 |
-| Input Register | 0 | 30001 | Vitesse de rotation | Mesure analogique | Automate → IHM | tr/min | 0 à 1500 | 0 |
-| Input Register | 1 | 30002 | Consigne suivie | Mesure analogique | Automate → IHM | tr/min | 0 à 1500 | 0 |
-
-Le détail de chaque table suit.
-
-### Coils — commandes (lecture / écriture, codes 1 et 5)
-
-| Adresse | Notation hist. | Constante Python | Rôle | `False` | `True` | Défaut |
-|---------|----------------|------------------|------|---------|--------|--------|
-| 0 | 00001 | `CO_MOTEUR` | Commande marche/arrêt du moteur | Arrêt | Marche | `False` |
-| 1 | 00002 | `CO_ARRET_URGENCE` | Arrêt d'urgence | Réarmé | Enclenché | `False` |
-| 2 | 00003 | `CO_MODE_MANUEL` | Mode de fonctionnement | Automatique | Manuel | `False` |
-| 3 à 15 | 00004 à 00016 | — | Réservés | | | `False` |
-
-Particularité du coil 0 : **l'automate peut l'écrire lui-même**. Si l'arrêt d'urgence est enclenché, il remet le coil 0 à `False` au cycle suivant. Une demande de marche pendant l'arrêt d'urgence est donc annulée.
-
-### Discrete Inputs (lecture seule, code 2)
-
-| Adresse | Rôle |
-|---------|------|
-| 0 à 15 | Inutilisées, toujours à `False`. La zone existe seulement pour que l'esclave possède ses quatre zones. |
-
-### Holding Registers — réglages (lecture / écriture, codes 3, 6 et 16)
-
-| Adresse | Notation hist. | Constante Python | Rôle | Unité | Plage | Défaut |
-|---------|----------------|------------------|------|-------|-------|--------|
-| 0 | 40001 | `HR_CONSIGNE_MANUELLE` | Consigne de vitesse en mode manuel | tr/min | 0 à 1500 | 750 |
-| 1 | 40002 | `HR_RAMPE_MONTEE` | Rampe d'accélération | tr/min/s | 50 à 3000 | 300 |
-| 2 | 40003 | `HR_RAMPE_DESCENTE` | Rampe de décélération (arrêt normal) | tr/min/s | 50 à 3000 | 150 |
-
-**Bornage automatique** : un client peut écrire n'importe quelle valeur de 0 à 65 535. L'automate ramène la valeur dans sa plage et **réécrit le registre corrigé** au cycle suivant. Exemple : écrire 5000 dans le holding register 1 donne 3000 à la relecture.
-
-### Input Registers — mesures (lecture seule, code 4)
-
-| Adresse | Notation hist. | Constante Python | Rôle | Unité | Plage |
-|---------|----------------|------------------|------|-------|-------|
-| 0 | 30001 | `IR_VITESSE` | Vitesse de rotation mesurée | tr/min | 0 à 1500 |
-| 1 | 30002 | `IR_CONSIGNE` | Consigne de vitesse réellement suivie par l'automate | tr/min | 0 à 1500 |
-
-La **consigne suivie** (IR 1) est différente de la **consigne manuelle** (HR 0) : c'est la vitesse que l'automate vise réellement en ce moment, en tenant compte du mode, de la commande de marche et de l'arrêt d'urgence (voir section 4).
+- **Coil 0** : l'automate peut l'écrire lui-même. Si l'arrêt d'urgence est enclenché, il le remet à `False` au cycle suivant : une demande de marche pendant l'arrêt d'urgence est donc annulée.
+- **Bornage des holding registers** : un client peut écrire n'importe quelle valeur de 0 à 65 535. L'automate ramène la valeur dans sa plage et **réécrit le registre corrigé** au cycle suivant. Exemple : écrire 5000 dans le holding register 1 donne 3000 à la relecture.
+- **Consigne suivie (IR 1) ≠ consigne manuelle (HR 0)** : la consigne suivie est la vitesse que l'automate vise réellement en ce moment, en tenant compte du mode, de la commande de marche et de l'arrêt d'urgence (voir section 4).
+- **Topic Node-RED** : nom de l'ordre envoyé par un bouton ou un curseur de l'IHM ; la fonction « Table d'écriture » le traduit en écriture Modbus (code 5 pour un coil, code 6 pour un holding register) à l'adresse indiquée.
 
 ---
 
@@ -190,21 +152,17 @@ La **consigne suivie** (IR 1) est différente de la **consigne manuelle** (HR 0)
 
 À chaque cycle, l'automate détermine la vitesse visée (propriété `Automate.consigne`, publiée dans l'IR 1) :
 
-| Arrêt d'urgence (CO 1) | Marche (CO 0) | Mode (CO 2) | Consigne suivie (IR 1) |
-|------------------------|---------------|-------------|------------------------|
-| `True` | indifférent | indifférent | 0 |
-| `False` | `False` | indifférent | 0 |
-| `False` | `True` | `False` (auto) | 1500 (nominale) |
-| `False` | `True` | `True` (manuel) | Consigne manuelle (HR 0) |
+- arrêt d'urgence enclenché (CO 1 = `True`) → **0** ;
+- sinon, moteur à l'arrêt (CO 0 = `False`) → **0** ;
+- sinon, mode automatique (CO 2 = `False`) → **1500 tr/min** (vitesse nominale) ;
+- sinon, mode manuel (CO 2 = `True`) → **consigne manuelle** (HR 0).
 
 ### Choix de la rampe
 
-| Situation | Rampe appliquée |
-|-----------|-----------------|
-| Vitesse < consigne suivie | Accélération (HR 1) |
-| Vitesse > consigne suivie, sans arrêt d'urgence | Décélération (HR 2) |
-| Vitesse > consigne suivie, arrêt d'urgence enclenché | Freinage d'urgence : 1500 tr/min/s |
-| Vitesse = consigne suivie | Aucune, vitesse stable |
+- vitesse inférieure à la consigne suivie → **rampe d'accélération** (HR 1) ;
+- vitesse supérieure à la consigne suivie, sans arrêt d'urgence → **rampe de décélération** (HR 2) ;
+- vitesse supérieure à la consigne suivie, arrêt d'urgence enclenché → **freinage d'urgence à 1500 tr/min/s** ;
+- vitesse égale à la consigne suivie → aucune rampe, vitesse stable.
 
 Avec les réglages par défaut : 0 → 1500 tr/min en **5 s** (300 tr/min/s), 1500 → 0 en **10 s** (150 tr/min/s), et **1 s** en arrêt d'urgence.
 
@@ -248,14 +206,9 @@ Ce module ne contient que des constantes et quatre petites fonctions de conversi
 
 ### `src/tp_simu_auto/automate.py` — le modèle physique
 
-La classe `Automate` est une `dataclass` qui contient tout l'état du procédé :
+La classe `Automate` est une `dataclass` qui contient tout l'état du procédé : les commandes, le capteur de vitesse et les réglages. La correspondance entre chaque attribut et sa variable Modbus est donnée dans le tableau unique de la [section 3](#3-table-déchange-modbus-de-lautomate).
 
-| Groupe | Attributs | Lien Modbus |
-|--------|-----------|-------------|
-| Commandes | `moteur_en_marche`, `arret_urgence`, `mode_manuel` | Coils 0, 1, 2 |
-| Capteur | `vitesse` | Input register 0 |
-| Réglages | `consigne_manuelle`, `vitesse_montee`, `vitesse_descente` | Holding registers 0, 1, 2 |
-| Constantes | `vitesse_min` (0), `vitesse_max` (1500), `rampe_min` (50), `rampe_max` (3000), `freinage_urgence` (1500) | — |
+Elle contient aussi des constantes, sans lien avec Modbus : `vitesse_min` (0 tr/min), `vitesse_max` (1500 tr/min, vitesse nominale), `rampe_min` (50 tr/min/s), `rampe_max` (3000 tr/min/s) et `freinage_urgence` (1500 tr/min/s).
 
 Trois méthodes :
 
@@ -349,17 +302,7 @@ flowchart LR
   - la **phase** : `URGENCE` si CO 1, sinon `ACCELERATION` si vitesse < consigne suivie, `DECELERATION` si vitesse > consigne suivie, `REGIME` si moteur en marche à la consigne, `ARRET` sinon ;
   - l'**accélération** mesurée (pente de la vitesse sur la dernière seconde) ;
   - des **compteurs** : nombre de démarrages, d'arrêts d'urgence, temps de marche, vitesse max atteinte. Ils sont gardés dans le contexte du nœud et repartent de zéro au redémarrage de Node-RED.
-- **Table d'écriture** : chaque bouton ou curseur envoie un ordre avec un `topic`. La fonction le traduit en écriture Modbus :
-
-| Topic envoyé par l'IHM | Code fonction | Adresse | Zone |
-|------------------------|---------------|---------|------|
-| `marche` | 5 (Write Single Coil) | 0 | Coil `CO_MOTEUR` |
-| `urgence` | 5 | 1 | Coil `CO_ARRET_URGENCE` |
-| `manuel` | 5 | 2 | Coil `CO_MODE_MANUEL` |
-| `consigne` | 6 (Write Single Register) | 0 | Holding register `HR_CONSIGNE_MANUELLE` |
-| `rampe_montee` | 6 | 1 | Holding register `HR_RAMPE_MONTEE` |
-| `rampe_descente` | 6 | 2 | Holding register `HR_RAMPE_DESCENTE` |
-
+- **Table d'écriture** : chaque bouton ou curseur envoie un ordre avec un `topic` (`marche`, `urgence`, `manuel`, `consigne`, `rampe_montee`, `rampe_descente`). La fonction le traduit en écriture Modbus : code 5 (Write Single Coil) pour un coil, code 6 (Write Single Register) pour un holding register. L'adresse de chaque topic est donnée dans le tableau unique de la [section 3](#3-table-déchange-modbus-de-lautomate).
   Les valeurs de registre hors 0 à 65 535 sont refusées par la fonction ; le bornage fin (0 à 1500, 50 à 3000) est laissé à l'automate.
 
 > Les adresses du flow sont saisies à la main dans les trois nœuds Modbus Read et dans la fonction « Table d'écriture ». Si `modbus_map.py` change, il faut les reporter dans le flow.
