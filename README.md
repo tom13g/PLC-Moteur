@@ -1,6 +1,6 @@
 # Simulation d'automate moteur asynchrone en Modbus TCP
 
-> 📄 **Table d'échange Modbus (coils, discrete inputs, holding et input registers) dans un fichier à part : [TABLE_MODBUS.md](TABLE_MODBUS.md)**
+> 📄 **Table d'échange Modbus (coils, discrete inputs, holding et input registers) : [TABLE_MODBUS.md](TABLE_MODBUS.md)**
 
 Ce projet simule un **automate programmable industriel (API / PLC)** qui pilote un **moteur asynchrone** et expose ses commandes, ses réglages et son capteur de vitesse sur le réseau en **Modbus TCP**.
 
