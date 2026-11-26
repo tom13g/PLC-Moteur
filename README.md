@@ -347,6 +347,10 @@ L'IHM ne contient aucune logique de commande : arrêt d'urgence, mode et bornage
 
 ## 7. Installation et utilisation
 
+Il suffit d'installer uv et Node.js, de récupérer le projet, puis de lancer le serveur Python et, au choix, le client console ou l'IHM Node-RED.
+
+> Les parties « Installation » et « Utilisation » de ce README ont été rédigées avec l'aide d'une IA (Claude).
+
 ### Prérequis
 
 - [uv](https://github.com/astral-sh/uv), qui installe lui-même Python 3.13 :
