@@ -40,6 +40,8 @@ flowchart LR
     NAV["Navigateur<br/>127.0.0.1:1880/dashboard/moteur"] -- HTTP --> NR
 ```
 
+*Diagramme réalisé avec l'aide d'une IA (Claude).*
+
 | Rôle | Fichier | Description |
 |------|---------|-------------|
 | Table d'échange | `src/tp_simu_auto/modbus_map.py` | Adresses Modbus, port, numéro d'esclave, facteurs d'échelle. **Seule source de vérité** des adresses côté Python. |
@@ -108,6 +110,30 @@ Un registre contient un entier non signé de **0 à 65 535**. Pour transmettre u
 ## 3. Table d'échange Modbus de l'automate
 
 Serveur : **port 502**, **esclave n°1**. Adresses à partir de 0.
+
+### Vue d'ensemble des tables Modbus
+
+| Table Modbus | Nature de la donnée | Taille | Accès client | Codes fonction | Adresses utilisées | Contenu dans ce projet |
+|--------------|---------------------|--------|--------------|----------------|--------------------|------------------------|
+| **Coils** | TOR (tout ou rien), **commandes** envoyées à l'automate | 1 bit | Lecture / écriture | 1, 5, 15 | 0 à 2 (3 à 15 réservés) | Marche moteur, arrêt d'urgence, mode auto/manuel |
+| **Discrete Inputs** | TOR, **états** lus par l'automate (capteurs TOR) | 1 bit | Lecture seule | 2 | aucune (0 à 15 à `False`) | Non utilisée |
+| **Holding Registers** | Analogique (entier 16 bits), **paramètres / consignes** | 16 bits | Lecture / écriture | 3, 6, 16 | 0 à 2 | Consigne manuelle, rampe d'accélération, rampe de décélération |
+| **Input Registers** | Analogique (entier 16 bits), **mesures** produites par l'automate | 16 bits | Lecture seule | 4 | 0 à 1 | Vitesse mesurée, consigne suivie |
+
+### Toutes les variables en un tableau
+
+| Table | Adr. | Notation hist. | Variable | Nature | Sens | Unité | Plage | Défaut |
+|-------|------|----------------|----------|--------|------|-------|-------|--------|
+| Coil | 0 | 00001 | Marche / arrêt moteur | Commande TOR | IHM → automate (l'automate peut la remettre à `False`) | — | `False` / `True` | `False` |
+| Coil | 1 | 00002 | Arrêt d'urgence | Commande TOR | IHM → automate | — | `False` / `True` | `False` |
+| Coil | 2 | 00003 | Mode manuel | Commande TOR | IHM → automate | — | `False` = auto, `True` = manuel | `False` |
+| Holding Register | 0 | 40001 | Consigne manuelle | Paramètre analogique | IHM → automate (borné par l'automate) | tr/min | 0 à 1500 | 750 |
+| Holding Register | 1 | 40002 | Rampe d'accélération | Paramètre analogique | IHM → automate (borné par l'automate) | tr/min/s | 50 à 3000 | 300 |
+| Holding Register | 2 | 40003 | Rampe de décélération | Paramètre analogique | IHM → automate (borné par l'automate) | tr/min/s | 50 à 3000 | 150 |
+| Input Register | 0 | 30001 | Vitesse de rotation | Mesure analogique | Automate → IHM | tr/min | 0 à 1500 | 0 |
+| Input Register | 1 | 30002 | Consigne suivie | Mesure analogique | Automate → IHM | tr/min | 0 à 1500 | 0 |
+
+Le détail de chaque table suit.
 
 ### Coils — commandes (lecture / écriture, codes 1 et 5)
 
@@ -205,6 +231,8 @@ stateDiagram-v2
     }
 ```
 
+*Diagramme réalisé avec l'aide d'une IA (Claude).*
+
 ---
 
 ## 5. Explication du code
@@ -269,6 +297,8 @@ flowchart TD
     E["Affichage console"] --> A
 ```
 
+*Diagramme réalisé avec l'aide d'une IA (Claude).*
+
 Détails importants :
 
 - **`dt` est mesuré** (`loop.time()`) au lieu de prendre 0,2 s : `asyncio.sleep()` n'est pas précis, surtout sous Windows. La vitesse reste donc juste même si un cycle dure plus longtemps.
@@ -310,6 +340,8 @@ flowchart LR
     REG -- "ordre (topic)" --> TAB
     TAB["Fonction « Table d'écriture »<br/>ordre → code fonction + adresse"] --> W["Modbus Flex Write"]
 ```
+
+*Diagramme réalisé avec l'aide d'une IA (Claude).*
 
 - **Connexion** : nœud `modbus-client` « Automate simulé », TCP `127.0.0.1:502`, esclave 1, reconnexion toutes les 2 s.
 - **Lectures** : trois nœuds Modbus Read, un par zone (coils, holding registers, input registers).
